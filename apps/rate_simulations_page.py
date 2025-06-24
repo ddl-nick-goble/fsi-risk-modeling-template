@@ -10,7 +10,7 @@ MODEL_COLORS = ["#1f77b4", "#ff7f0e"]  # first model → blue, second → orange
 # ─── Data access ────────────────────────────────────────────────────────────
 ds = DataSourceClient().get_datasource("market_data")
 
-@st.cache_data(ttl=120)
+# @st.cache_data(ttl=120)
 def get_available_dates() -> list[date]:
     df = ds.query("""
         SELECT DISTINCT curve_date
@@ -20,7 +20,7 @@ def get_available_dates() -> list[date]:
     df["curve_date"] = pd.to_datetime(df["curve_date"])
     return df["curve_date"].dt.date.tolist()
 
-@st.cache_data(ttl=120)
+# @st.cache_data(ttl=120)
 def get_available_days(as_of_date: date) -> list[int]:
     df = ds.query(f"""
         SELECT DISTINCT days_forward
@@ -30,7 +30,7 @@ def get_available_days(as_of_date: date) -> list[int]:
     """).to_pandas()
     return df["days_forward"].astype(int).tolist()
 
-@st.cache_data(ttl=120)
+# @st.cache_data(ttl=120)
 def get_available_models(as_of_date: date, days_forward: int) -> list[str]:
     df = ds.query(f"""
         SELECT DISTINCT model_type
@@ -41,7 +41,7 @@ def get_available_models(as_of_date: date, days_forward: int) -> list[str]:
     """).to_pandas()
     return df["model_type"].tolist()
 
-@st.cache_data
+# @st.cache_data
 def load_base_curve(as_of_date: date) -> pd.DataFrame:
     sql = f"""
     SELECT tenor_num, rate
@@ -51,7 +51,7 @@ def load_base_curve(as_of_date: date) -> pd.DataFrame:
     """
     return ds.query(sql).to_pandas()
 
-@st.cache_data(ttl=120)
+# @st.cache_data(ttl=120)
 def load_all_cone_curves(as_of_date: date, days_forward: int) -> pd.DataFrame:
     sql = f"""
     SELECT
@@ -67,7 +67,7 @@ def load_all_cone_curves(as_of_date: date, days_forward: int) -> pd.DataFrame:
     return ds.query(sql).to_pandas()
 
 # ─── App ───────────────────────────────────────────────────────────────────
-def main():
+def app():
     dates = get_available_dates()
     if not dates:
         st.error("No cone dates found in rate_cones.")
@@ -261,6 +261,27 @@ def main():
         .configure_axis(labelFontSize=12, titleFontSize=14)
         .interactive()
     )
+    import json
+
+    def find_bad(obj, path="root"):
+        bad = []
+        if isinstance(obj, dict):
+            for k,v in obj.items():
+                bad += find_bad(v, f"{path}.{k}")
+        elif isinstance(obj, list):
+            for i,v in enumerate(obj):
+                bad += find_bad(v, f"{path}[{i}]")
+        else:
+            try:
+                json.dumps(obj)
+            except TypeError:
+                bad.append((path, obj))
+        return bad
+    
+    spec = chart.to_dict()
+    issues = find_bad(spec)
+    st.write("Non-JSON-serializable entries:", issues)
+
     st.altair_chart(chart, use_container_width=True)
     # ─── Dynamic legend ───────────────────────────────────────────────────────
     legend_items = []
@@ -340,7 +361,7 @@ def main():
     st.header("Model Drift Diagnostics")
 
     # ─── Fetch available date range ────────────────────────────────────────────
-    @st.cache_data(ttl=300)
+    # @st.cache_data(ttl=300)
     def get_diag_date_range(days_forward: int, models: list[str]):
         today = date.today()
         if not models:
@@ -386,7 +407,7 @@ def main():
     metric_field = "mean_scaled" if metric_option == "Mean Scaled Error" else "mean_error"
 
     # ─── Load diagnostics (both errors) ───────────────────────────────────────
-    @st.cache_data(ttl=300)
+    # @st.cache_data(ttl=300)
     def load_diagnostics(days_forward: int, models: list[str], start_date, end_date) -> pd.DataFrame:
         models_sql = ", ".join(f"'{m}'" for m in models)
         sql = f"""
@@ -441,7 +462,3 @@ def main():
                .properties(height=400, title=f"{metric_option} Over Time")
         )
         st.altair_chart(chart, use_container_width=True)
-
-
-if __name__ == "__main__":
-    main()

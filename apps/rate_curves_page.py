@@ -51,7 +51,7 @@ def closest_before(target: date, all_dates: list[date]) -> date | None:
     return max(candidates) if candidates else None
 
 # ─── App ────────────────────────────────────────────────────────────────────
-def main():
+def app():
     dates = get_available_dates()
     latest = dates[-1]
 
@@ -172,6 +172,3 @@ def main():
         key="scale_mode",
         horizontal=True
     )
-
-if __name__ == "__main__":
-    main()

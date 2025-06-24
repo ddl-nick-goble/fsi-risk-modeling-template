@@ -80,7 +80,7 @@ def load_metrics_data(
 
 
 # ─── Streamlit App ───────────────────────────────────────────────────────────
-def main():
+def app():
     # 1) Fetch available dates
     dates = get_available_dates()
     if not dates:
@@ -298,4 +298,4 @@ def main():
         st.dataframe(pivoted)
 
 if __name__ == "__main__":
-    main()
+    app()

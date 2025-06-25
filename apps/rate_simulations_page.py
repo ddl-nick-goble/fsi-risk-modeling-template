@@ -126,7 +126,7 @@ def app():
         selected_models = st.multiselect(
             "Model Types",
             options=model_opts,
-            default=model_opts[:2]
+            default=model_opts[:1]
         )
 
     if len(selected_models) > 2:

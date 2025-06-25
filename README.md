@@ -1,4 +1,4 @@
-# FSI Market Data
+# FSI Risk Modeling
 
 This repository contains a modular quantitative research toolkit developed to support model development, validation, and deployment within the investment ecosystem. It provides a shared foundation for quants, model validators, and technologists to collaborate on research workflows in a governed, production-aligned environment.  
 
